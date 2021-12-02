@@ -1,0 +1,9 @@
+*.class
+*.jar
+
+.gradle
+build/
+gradle-app.setting
+!gradle-wrapper.jar
+
+/REVISION

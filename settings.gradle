@@ -1,0 +1,6 @@
+include 'shared'
+include 'stream'
+include 'batch'
+include 'merge'
+
+rootProject.name = 'prism'

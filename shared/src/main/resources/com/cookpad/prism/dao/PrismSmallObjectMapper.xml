@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cookpad.prism.dao.PrismSmallObjectMapper">
+    <resultMap id="prismSmallObjectMap" type="PrismSmallObject">
+        <id property="id" column="prism_small_object_id" />
+        <result property="partitionId" column="prism_partition_id" />
+        <result property="stagingObjectId" column="prism_staging_object_id" />
+        <result property="isDelayed" column="delayed" />
+        <result property="contentLength" column="content_length" />
+        <result property="uploadStartTime" column="upload_start_time" />
+    </resultMap>
+
+    <!-- Use 'select' element instead of 'insert' because this statement returns values -->
+    <select id="createByParams" resultMap="prismSmallObjectMap" flushCache="true">
+        insert into prism_small_objects(
+            prism_staging_object_id
+            , prism_partition_id
+            , delayed
+            , upload_start_time
+            , content_length
+        )
+        select
+            l.prism_staging_object_id
+            , l.prism_partition_id
+            , p.last_live_object_id is not null as delayed
+            , l.upload_start_time
+            , l.content_length
+        from (
+            select
+                #{stagingObjectId} as prism_staging_object_id
+                , #{partitionId} as prism_partition_id
+                , #{uploadStartTime}::timestamp as upload_start_time
+                , #{contentLength} as content_length
+        ) as l
+            left join prism_partitions as p using (prism_partition_id)
+            left join prism_tables as t using (prism_table_id)
+        returning
+            prism_small_object_id
+            , prism_partition_id
+            , prism_staging_object_id
+            , delayed
+            , upload_start_time
+    </select>
+
+    <select id="findByParams" resultMap="prismSmallObjectMap">
+        select
+            s.*
+        from
+            prism_small_objects as s
+        where
+            s.prism_staging_object_id = #{stagingObjectId}
+            and s.prism_partition_id = #{partitionId}
+    </select>
+
+    <select id="findNewObjects" resultMap="prismSmallObjectMap">
+    <![CDATA[
+        select
+            s.*
+        from
+            prism_small_objects as s
+        where
+            s.prism_partition_id = #{partitionId}
+            and s.prism_small_object_id > #{lowerBound}
+        order by
+            s.prism_small_object_id asc
+        limit
+            #{limit}
+        ;
+    ]]>
+    </select>
+
+    <select id="findAllObjectsInRange" resultMap="prismSmallObjectMap">
+    <![CDATA[
+        select
+            s.*
+        from
+            prism_small_objects as s
+        where
+            s.prism_partition_id = #{partitionId}
+            and s.prism_small_object_id > #{lowerBound}
+            and s.prism_small_object_id <= #{upperBound}
+        order by
+            s.prism_small_object_id asc
+        ;
+    ]]>
+    </select>
+</mapper>

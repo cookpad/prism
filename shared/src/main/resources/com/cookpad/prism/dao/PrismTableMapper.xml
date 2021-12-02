@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cookpad.prism.dao.PrismTableMapper">
+    <resultMap id="prismTableMap" type="PrismTable">
+        <id property="id" column="prism_table_id" />
+        <result property="physicalSchemaName" column="physical_schema_name" />
+        <result property="physicalTableName" column="physical_table_name" />
+        <result property="logicalSchemaName" column="schema_name" />
+        <result property="logicalTableName" column="table_name" />
+        <result property="createTime" column="create_time" />
+        <result property="mergeInterval" column="merge_interval" />
+    </resultMap>
+    <resultMap id="prismTableToStreamColumnsMap" type="OneToMany">
+        <id column="prism_table_id" />
+        <association property="one" javaType="PrismTable" resultMap="prismTableMap" />
+        <collection
+            property="many"
+            ofType="StreamColumn"
+            resultMap="com.cookpad.prism.dao.PacketStreamMapper.streamColumnMap"
+            columnPrefix="column_"
+        />
+    </resultMap>
+
+    <select id="find" resultMap="prismTableMap">
+    <![CDATA[
+        select
+            t.prism_table_id
+            , t.physical_schema_name
+            , t.physical_table_name
+            , t.schema_name
+            , t.table_name
+            , t.create_time
+            , t.merge_interval
+        from
+            prism_tables as t
+        where
+            t.prism_table_id = #{tableId}
+    ]]>
+    </select>
+
+    <select id="findWithColumns" resultMap="prismTableToStreamColumnsMap">
+    <![CDATA[
+        select
+            t.*
+            , c.column_id as column_column_id
+            , c.column_name as column_column_name
+            , c.source_name as column_source_name
+            , c.value_type as column_value_type
+            , c.value_length as column_value_length
+            , c.source_offset as column_source_offset
+            , c.zone_offset as column_zone_offset
+            , c.create_time as column_create_time
+            , c.partition_source as column_partition_source
+        from
+            prism_tables as t
+            inner join (
+                select
+                    m.prism_table_id
+                    , s.stream_id
+                    , row_number() over (
+                        partition by m.prism_table_id
+                        order by s.stream_id
+                    ) as num
+                from
+                    prism_tables_strload_streams as m
+                    inner join strload_streams as s on
+                        m.stream_id = s.stream_id
+                        --and not s.disabled
+                        --and not s.discard
+                        and s.initialized
+            ) as rs on -- ranked stream
+                t.prism_table_id = rs.prism_table_id
+                and rs.num = 1 -- select primary stream
+            inner join strload_columns as c on
+                rs.stream_id = c.stream_id
+        where
+            t.prism_table_id = #{tableId}
+        ;
+    ]]>
+    </select>
+
+    <select id="getAllWithColumns" resultMap="prismTableToStreamColumnsMap">
+    <![CDATA[
+        select
+            t.*
+            , c.column_id as column_column_id
+            , c.column_name as column_column_name
+            , c.source_name as column_source_name
+            , c.value_type as column_value_type
+            , c.value_length as column_value_length
+            , c.source_offset as column_source_offset
+            , c.zone_offset as column_zone_offset
+            , c.create_time as column_create_time
+            , c.partition_source as column_partition_source
+        from
+            prism_tables as t
+            inner join (
+                select
+                    m.prism_table_id
+                    , s.stream_id
+                    , row_number() over (
+                        partition by m.prism_table_id
+                        order by s.stream_id
+                    ) as num
+                from
+                    prism_tables_strload_streams as m
+                    inner join strload_streams as s on
+                        m.stream_id = s.stream_id
+                        and not s.disabled
+                        and not s.discard
+                        and s.initialized
+            ) as rs on -- ranked stream
+                t.prism_table_id = rs.prism_table_id
+                and rs.num = 1 -- select primary stream
+            inner join strload_columns as c on
+                rs.stream_id = c.stream_id
+        ;
+    ]]>
+    </select>
+
+    <delete id="unlink">
+    <![CDATA[
+        delete
+        from
+            prism_tables_strload_streams
+        where
+            prism_table_id = #{tableId}
+        ;
+    ]]>
+    </delete>
+
+    <delete id="drop">
+    <![CDATA[
+        delete
+        from
+            prism_merge_jobs as j
+        using
+            prism_partitions as p
+        where
+            j.prism_partition_id = p.prism_partition_id
+            and p.prism_table_id = #{tableId}
+        ;
+
+        delete
+        from
+            prism_merge_ranges as r
+        using
+            prism_partitions as p
+        where
+            r.prism_partition_id = p.prism_partition_id
+            and p.prism_table_id = #{tableId}
+        ;
+
+        delete
+        from
+            prism_partitions as p
+        where
+            p.prism_table_id = #{tableId}
+        ;
+
+        delete
+        from
+            prism_tables as t
+        where
+            t.prism_table_id = #{tableId}
+        ;
+    ]]>
+    </delete>
+</mapper>

@@ -1,0 +1,14 @@
+create_table "prism_partitions", primary_key: "prism_partition_id", id: :bigint, force: :cascade do |t|
+  t.integer  "prism_table_id", null: false
+  t.date     "partition_date", null: false
+  t.bigint   "current_manifest_version", null: false, default: -1
+  t.bigint   "ongoing_manifest_version", null: false, default: -1 # deprecated
+  t.bigint   "desired_manifest_version", null: false, default: 0
+  t.bigint   "last_live_object_id", null: true, default: nil
+  t.boolean  "switched", null: false, default: false
+end
+
+add_index "prism_partitions", ["prism_table_id", "partition_date"],
+  name: "prism_partitions_prism_table_id_partition_date_idx",
+  unique: true,
+  using: :btree

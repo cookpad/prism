@@ -1,0 +1,10 @@
+create_table "prism_tables", primary_key: "prism_table_id", force: :cascade do |t|
+  t.string   "schema_name", limit: 128, null: false
+  t.string   "table_name", limit: 128, null: false
+  t.integer  "merge_interval", null: false, default: 43200
+  t.datetime "create_time", null: false
+  t.string   "physical_schema_name", limit: 128, null: true
+  t.string   "physical_table_name", limit: 128, null: true
+end
+
+add_index "prism_tables", ["schema_name", "table_name"], name: "prism_tables_schema_name_table_name_idx", unique: true, using: :btree

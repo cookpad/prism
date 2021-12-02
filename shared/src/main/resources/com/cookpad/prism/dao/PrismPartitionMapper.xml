@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cookpad.prism.dao.PrismPartitionMapper">
+    <resultMap id="prismPartitionMap" type="PrismPartition">
+        <id property="id" column="prism_partition_id" />
+        <result property="tableId" column="prism_table_id" />
+        <result property="partitionDate" column="partition_date" />
+        <result property="currentManifestVersion" column="current_manifest_version" />
+        <result property="desiredManifestVersion" column="desired_manifest_version" />
+        <result property="lastLiveObjectId" column="last_live_object_id" />
+        <result property="switched" column="switched" />
+    </resultMap>
+
+    <resultMap id="prismPartitionToMergeRangesMap" type="OneToMany">
+        <id column="prism_partition_id" />
+        <association property="one" javaType="PrismPartition" resultMap="prismPartitionMap" />
+        <collection
+            property="many"
+            ofType="PrismMergeRange"
+            resultMap="com.cookpad.prism.dao.PrismMergeRangeMapper.prismMergeRangeMap"
+        />
+    </resultMap>
+
+    <select id="createPartitionIfNotExists" resultMap="prismPartitionMap" flushCache="true" useCache="false">
+    <![CDATA[
+        insert into prism_partitions (
+            prism_table_id
+            , partition_date
+        )
+        values (
+            #{tableId}
+            , #{partitionDate}
+        )
+        on conflict do nothing
+        ;
+        select
+            p.prism_partition_id
+            , p.prism_table_id
+            , p.partition_date
+            , p.current_manifest_version
+            , p.desired_manifest_version
+            , p.last_live_object_id
+            , p.switched
+        from
+            prism_partitions as p
+        where
+            p.prism_table_id = #{tableId}
+            and p.partition_date = #{partitionDate}
+        ;
+    ]]>
+    </select>
+
+    <select id="find" resultMap="prismPartitionMap">
+    <![CDATA[
+        select
+            p.prism_partition_id
+            , p.prism_table_id
+            , p.partition_date
+            , p.current_manifest_version
+            , p.desired_manifest_version
+            , p.last_live_object_id
+            , p.switched
+        from
+            prism_partitions as p
+        where
+            p.prism_partition_id = #{id}
+        ;
+    ]]>
+    </select>
+
+    <select id="findByTableIdAndDate" resultMap="prismPartitionMap">
+    <![CDATA[
+        select
+            p.prism_partition_id
+            , p.prism_table_id
+            , p.partition_date
+            , p.current_manifest_version
+            , p.desired_manifest_version
+            , p.last_live_object_id
+            , p.switched
+        from
+            prism_partitions as p
+        where
+            p.prism_table_id = #{tableId}
+            and p.partition_date = #{partitionDate}
+        ;
+    ]]>
+    </select>
+
+    <update id="closePartitions">
+    <![CDATA[
+        update prism_partitions as p
+        set
+            last_live_object_id = (
+                select
+                    max(sm.prism_small_object_id)
+                from
+                    prism_small_objects as sm
+                where
+                    sm.prism_partition_id = p.prism_partition_id
+                    and not sm.delayed
+            )
+        from
+            (
+                select
+                    m.prism_table_id
+                    -- 前日を close するので -1 day
+                    , (now()::timestamp + min(c.zone_offset)::interval)::date - interval '1 day' as dt
+                from
+                    prism_tables_strload_streams as m
+                    inner join strload_streams as s on
+                        m.stream_id = s.stream_id
+                        and not s.disabled
+                        and not s.discard
+                        and s.initialized
+                    inner join strload_columns as c on
+                        s.stream_id = c.stream_id
+                        and c.partition_source = true
+                group by
+                    m.prism_table_id
+            ) as closeable_dates
+        where
+            p.last_live_object_id is null
+            and closeable_dates.prism_table_id = p.prism_table_id
+            and p.partition_date <= closeable_dates.dt
+        ;
+    ]]>
+    </update>
+
+    <update id="switchPartitions">
+    <![CDATA[
+        update prism_partitions as p
+        set
+            switched = true
+        from
+            (
+                select
+                    r.prism_partition_id
+                    , coalesce(max(r.upper_bound), 0) as upper_bound
+                from
+                    prism_merge_ranges as r
+                group by
+                    r.prism_partition_id
+            ) as upper_bounds
+        where
+            upper_bounds.prism_partition_id = p.prism_partition_id
+            and p.last_live_object_id is not null
+            and p.last_live_object_id <= upper_bounds.upper_bound
+        ;
+    ]]>
+    </update>
+
+    <select id="getNewPartitions" resultMap="prismPartitionMap">
+    <![CDATA[
+        select
+            p.prism_partition_id
+            , p.prism_table_id
+            , p.partition_date
+            , p.current_manifest_version
+            , p.desired_manifest_version
+            , p.last_live_object_id
+            , p.switched
+        from
+            prism_partitions as p
+        where
+            not p.switched
+            and p.current_manifest_version < 0
+        ;
+    ]]>
+    </select>
+
+    <select id="getSwitchedPartitionsToUpdate" resultMap="prismPartitionMap">
+    <![CDATA[
+        select
+            p.prism_partition_id
+            , p.prism_table_id
+            , p.partition_date
+            , p.current_manifest_version
+            , p.desired_manifest_version
+            , p.last_live_object_id
+            , p.switched
+        from
+            prism_partitions as p
+        where
+            p.switched
+            and p.current_manifest_version < p.desired_manifest_version
+        ;
+    ]]>
+    </select>
+
+    <update id="updateCurrentManifestVersion">
+    <![CDATA[
+        update prism_partitions
+        set
+            current_manifest_version = #{currentManifestVersion}
+        where
+            prism_partition_id = #{id}
+        ;
+    ]]>
+    </update>
+
+    <update id="updateDesiredManifestVersion">
+    <![CDATA[
+        update prism_partitions
+        set
+            desired_manifest_version = #{desiredManifestVersion}
+        where
+            prism_partition_id = #{id}
+            and desired_manifest_version < #{desiredManifestVersion}
+        ;
+    ]]>
+    </update>
+</mapper>

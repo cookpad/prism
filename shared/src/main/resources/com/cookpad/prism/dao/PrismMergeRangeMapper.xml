@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cookpad.prism.dao.PrismMergeRangeMapper">
+    <resultMap id="prismMergeRangeMap" type="PrismMergeRange">
+        <id property="id" column="prism_merge_range_id" />
+        <result property="partitionId" column="prism_partition_id"/>
+        <result property="lowerBound" column="lower_bound"/>
+        <result property="upperBound" column="upper_bound"/>
+        <result property="contentLength" column="content_length"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <select id="findOpenRange" resultMap="prismMergeRangeMap">
+    <![CDATA[
+        select
+            prism_merge_range_id
+            , prism_partition_id
+            , lower_bound
+            , upper_bound
+            , content_length
+            , create_time
+            , update_time
+        from
+            prism_merge_ranges as r
+        where
+            r.prism_partition_id = #{partitionId}
+            and r.upper_bound <> 0
+        order by
+            r.upper_bound desc
+        limit
+            1
+        ;
+    ]]>
+    </select>
+
+    <select id="findAllInPartition" resultMap="prismMergeRangeMap">
+    <![CDATA[
+        select
+            r.prism_merge_range_id
+            , r.prism_partition_id
+            , r.lower_bound
+            , r.upper_bound
+            , r.content_length
+            , r.create_time
+            , r.update_time
+        from
+            prism_merge_ranges as r
+        where
+            r.prism_partition_id = #{partitionId}
+            and r.upper_bound <> 0
+        order by
+            r.upper_bound asc
+        ;
+    ]]>
+    </select>
+
+    <insert id="upsertRange">
+    <![CDATA[
+        insert into prism_merge_ranges(
+            prism_partition_id
+            , lower_bound
+            , upper_bound
+            , content_length
+            , create_time
+            , update_time
+        )
+        select
+            #{partitionId} as prism_partition_id
+            , null as lower_bound
+            , 0 as upper_bound
+            , 0 as content_length
+            , #{now} as create_time
+            , #{now} as update_time
+        where
+            (
+                select
+                    r.prism_merge_range_id
+                from
+                    prism_merge_ranges as r
+                where
+                    r.prism_partition_id = #{partitionId}
+                    and r.upper_bound = 0
+            ) is null
+        ;
+        insert into prism_merge_ranges(
+            prism_partition_id
+            , lower_bound
+            , upper_bound
+            , content_length
+            , create_time
+            , update_time
+        )
+        values (
+            #{partitionId}
+            , #{lowerBound}
+            , #{upperBound}
+            , #{contentLength}
+            , #{now}
+            , #{now}
+        )
+        on conflict (lower_bound, prism_partition_id) do
+        update
+        set
+            upper_bound = #{upperBound}
+            , content_length = #{contentLength}
+            , update_time = #{now}
+        where
+            prism_merge_ranges.upper_bound <= #{upperBound}
+        ;
+    ]]>
+    </insert>
+</mapper>

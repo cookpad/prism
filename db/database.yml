@@ -1,0 +1,9 @@
+development:
+  adapter: postgresql
+  host: localhost
+  port: 5432
+  database: prism
+  username: prism
+  password: prism
+  encoding: unicode
+  pool: 1

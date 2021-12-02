@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cookpad.prism.dao.PacketStreamMapper">
+    <resultMap id="packetStreamMap" type="PacketStream">
+        <id property="id" column="stream_id" />
+        <result property="name" column="stream_name"/>
+        <result property="disabled" column="disabled"/>
+        <result property="discard" column="discard"/>
+        <result property="noDispatch" column="no_dispatch"/>
+        <result property="initialized" column="stream_initialized"/>
+        <result property="createTime" column="stream_create_time"/>
+        <result property="columnInitialized" column="stream_column_initialized"/>
+    </resultMap>
+    <resultMap id="streamColumnMap" type="StreamColumn">
+        <id property="id" column="column_id"/>
+        <result property="name" column="column_name"/>
+        <result property="sourceName" column="source_name"/>
+        <result property="type" column="value_type"/>
+        <result property="length" column="value_length"/>
+        <result property="sourceOffset" column="source_offset"/>
+        <result property="zoneOffset" column="zone_offset"/>
+        <result property="createTime" column="create_time"/>
+        <result property="isPartitionSource" column="partition_source" />
+    </resultMap>
+    <resultMap id="streamToColumnsMap" type="OneToMany">
+        <id column="stream_id" />
+        <association property="one" javaType="PacketStream" resultMap="packetStreamMap" />
+        <collection property="many" ofType="StreamColumn" resultMap="streamColumnMap" columnPrefix="column_" />
+    </resultMap>
+    <resultMap id="streamToColumnsToPrismTableMap" type="OneToOne">
+        <id column="stream_id" />
+        <association property="left" javaType="OneToMany" resultMap="streamToColumnsMap" />
+        <association
+            property="right"
+            javaType="PrismTable"
+            resultMap="com.cookpad.prism.dao.PrismTableMapper.prismTableMap"
+            columnPrefix="prism_table_"
+        />
+    </resultMap>
+
+    <select id="findByStreamName" resultType="OneToMany" resultMap="streamToColumnsMap">
+        select
+            s.stream_id as stream_id
+            , s.stream_name as stream_name
+            , s.disabled as disabled
+            , s.discard as discard
+            , s.no_dispatch as no_dispatch
+            , s.initialized as stream_initialized
+            , s.create_time as stream_create_time
+            , s.column_initialized as stream_column_initialized
+            , c.column_id as column_column_id
+            , c.column_name as column_column_name
+            , c.source_name as column_source_name
+            , c.value_type as column_value_type
+            , c.value_length as column_value_length
+            , c.source_offset as column_source_offset
+            , c.zone_offset as column_zone_offset
+            , c.create_time as column_create_time
+            , c.partition_source as column_partition_source
+        from
+            strload_streams as s
+            inner join strload_columns as c
+                on s.stream_id = c.stream_id
+        where
+            s.stream_name = #{streamName}
+    </select>
+
+    <select id="findByDestBucketAndPrefix" resultType="OneToOne" resultMap="streamToColumnsToPrismTableMap">
+        select
+            s.stream_id as stream_id
+            , s.stream_name as stream_name
+            , s.disabled as disabled
+            , s.discard as discard
+            , s.no_dispatch as no_dispatch
+            , s.initialized as stream_initialized
+            , s.create_time as stream_create_time
+            , s.column_initialized as stream_column_initialized
+
+            , c.column_id as column_column_id
+            , c.column_name as column_column_name
+            , c.source_name as column_source_name
+            , c.value_type as column_value_type
+            , c.value_length as column_value_length
+            , c.source_offset as column_source_offset
+            , c.zone_offset as column_zone_offset
+            , c.create_time as column_create_time
+            , c.partition_source as column_partition_source
+
+            , t.prism_table_id as prism_table_prism_table_id
+            , t.physical_schema_name as prism_table_physical_schema_name
+            , t.physical_table_name as prism_table_physical_table_name
+            , t.schema_name as prism_table_schema_name
+            , t.table_name as prism_table_table_name
+            , t.create_time as prism_table_create_time
+            , t.merge_interval as prism_table_merge_interval
+        from
+            strload_tables tbl
+            inner join strload_streams as s
+                on tbl.table_id = s.table_id
+            inner join strload_columns as c
+                on s.stream_id = c.stream_id
+            inner join prism_tables_strload_streams as m
+                on s.stream_id = m.stream_id
+            inner join prism_tables as t
+                on m.prism_table_id = t.prism_table_id
+        where
+            tbl.s3_bucket = #{destBucket}
+            and (
+                tbl.s3_prefix = #{destPrefix}
+                or tbl.s3_prefix = #{destPrefix} || '/queue'
+            )
+    </select>
+
+    <select id="findByPrismTableId" resultType="OneToMany" resultMap="streamToColumnsMap">
+        select
+            s.stream_id as stream_id
+            , s.stream_name as stream_name
+            , s.disabled as disabled
+            , s.discard as discard
+            , s.no_dispatch as no_dispatch
+            , s.initialized as stream_initialized
+            , s.create_time as stream_create_time
+            , s.column_initialized as stream_column_initialized
+            , c.column_id as column_column_id
+            , c.column_name as column_column_name
+            , c.source_name as column_source_name
+            , c.value_type as column_value_type
+            , c.value_length as column_value_length
+            , c.source_offset as column_source_offset
+            , c.zone_offset as column_zone_offset
+            , c.create_time as column_create_time
+            , c.partition_source as column_partition_source
+        from
+            strload_streams as s
+            inner join strload_columns as c
+                on s.stream_id = c.stream_id
+            inner join prism_tables_strload_streams as ts
+                on s.stream_id = ts.stream_id
+        where
+            ts.prism_table_id = #{tableId}
+    </select>
+</mapper>

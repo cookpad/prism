@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cookpad.prism.dao.PrismUnknownStagingObjectMapper">
+    <resultMap id="prismUnknownStagingObjectMap" type="PrismUnknownStagingObject">
+        <id property="id" column="prism_unknown_staging_object_id" />
+        <result property="bucketName" column="bucket_name" />
+        <result property="objectKey" column="object_key" />
+        <result property="sendTime" column="send_time" />
+        <result property="firstReceiveTime" column="first_receive_time" />
+        <result property="message" column="message" />
+    </resultMap>
+</mapper>

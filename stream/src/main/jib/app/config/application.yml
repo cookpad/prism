@@ -1,0 +1,27 @@
+# This config file is for *PRODUCTION*
+# Edit stream/config/application.yml instead if you need to change the config in *DEVELOPMENT* environment
+
+spring:
+    main:
+        banner-mode: "off"
+    datasource:
+        # database endpoint will be injected by environment variables
+        driver-class-name: org.postgresql.Driver
+        hikari:
+            maximum-pool-size: 2
+            minimum-idle: 1
+
+prism:
+    bucket-name: prism-example-bucket
+    prefix: ""
+    queue-url: "https://sqs.ap-northeast-1.amazonaws.com/111111111111/prism-stream-events"
+    #ignore-from-exclusive: "1900-01-01"
+    #ignore-to-inclusive: "2010-01-01"
+
+logging:
+    level:
+        root: INFO
+        com.cookpad.prism: INFO
+        com.cookpad.prism.dao: INFO
+        org.apache.parquet: WARN
+        org.apache.hadoop: WARN

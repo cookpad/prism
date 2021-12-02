@@ -1,0 +1,6 @@
+create_table "prism_tables_strload_streams", id: false, force: :cascade do |t|
+  t.integer "prism_table_id", null: false
+  t.integer "stream_id", null: false
+end
+
+add_index "prism_tables_strload_streams", ["stream_id"], name: "prism_table_strload_streams_stream_id", unique: true, using: :btree

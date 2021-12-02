@@ -1,0 +1,64 @@
+create_table "prism_merge_ranges", primary_key: "prism_merge_range_id", id: :bigint, force: :cascade do |t|
+  t.bigint   "prism_partition_id", null: false
+  t.bigint   "lower_bound", null: true
+  t.bigint   "upper_bound", null: false
+  t.bigint   "content_length", null: false
+  t.datetime "create_time", null: false
+  t.datetime "update_time", null: false
+end
+
+add_index "prism_merge_ranges", ["lower_bound", "prism_partition_id"],
+  name: "prism_merge_ranges_lower_bound_prism_partition_id_idx",
+  unique: true,
+  using: :btree
+
+add_index "prism_merge_ranges", ["upper_bound", "prism_partition_id"],
+  name: "prism_merge_ranges_upper_bound_prism_partition_id_idx",
+  unique: true,
+  using: :btree
+
+add_index "prism_merge_ranges", ["prism_partition_id"],
+  name: "prism_merge_ranges_prism_partition_id_idx",
+  using: :btree
+
+def if_constr_not_exists(c, table_name, name, type)
+  sql = <<~SQL
+    select
+        *
+    from
+        information_schema.table_constraints
+    where
+        table_schema = 'public'
+        and table_name = '#{table_name}'
+        and constraint_type = '#{type}'
+        and constraint_name = '#{name}'
+    ;
+  SQL
+
+  c.raw_connection.query(sql).to_a.length.zero?
+end
+
+execute(<<~SQL) do |c|
+  alter table prism_merge_ranges
+  add constraint prism_merge_ranges_prism_partition_id_fk
+  foreign key (prism_partition_id, lower_bound)
+      references prism_merge_ranges (prism_partition_id, upper_bound)
+SQL
+  if_constr_not_exists(c, "prism_merge_ranges", "prism_merge_ranges_prism_partition_id_fk", "FOREIGN KEY")
+end
+
+execute(<<~SQL) do |c|
+  alter table prism_merge_ranges
+  add constraint prism_merge_ranges_upper_gt_lower_ck
+  check (upper_bound > lower_bound)
+SQL
+  if_constr_not_exists(c, "prism_merge_ranges", "prism_merge_ranges_upper_gt_lower_ck", "CHECK")
+end
+
+execute(<<~SQL) do |c|
+  alter table prism_merge_ranges
+  add constraint prism_merge_ranges_lower_links_upper_ck
+  check (lower_bound is not null or (lower_bound is null and upper_bound = 0))
+SQL
+  if_constr_not_exists(c, "prism_merge_ranges", "prism_merge_ranges_lower_links_upper_ck", "CHECK")
+end

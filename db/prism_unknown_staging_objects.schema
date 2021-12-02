@@ -1,0 +1,9 @@
+create_table "prism_unknown_staging_objects", primary_key: "prism_unknown_staging_object_id", id: :bigint, force: :cascade do |t|
+  t.string   "bucket_name", limit: 63, null: false
+  t.string   "object_key", limit: 512, null: false
+  t.datetime "send_time", null: false
+  t.datetime "first_receive_time", null: false
+  t.string   "message", limit: 256, null: true
+end
+
+add_index "prism_unknown_staging_objects", ["object_key", "bucket_name"], name: "prism_unknown_staging_objects_object_unique_idx", unique: true, using: :btree

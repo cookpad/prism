@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <typeAliases>
+        <typeAlias type="com.cookpad.prism.dao.OneToMany" alias="OneToMany" />
+        <typeAlias type="com.cookpad.prism.dao.OneToOne" alias="OneToOne" />
+        <typeAlias type="com.cookpad.prism.dao.PacketStream" alias="PacketStream" />
+        <typeAlias type="com.cookpad.prism.dao.StreamColumn" alias="StreamColumn" />
+        <typeAlias type="com.cookpad.prism.dao.PrismStagingObject" alias="PrismStagingObject" />
+        <typeAlias type="com.cookpad.prism.dao.PrismUnknownStagingObject" alias="PrismUnknownStagingObject" />
+        <typeAlias type="com.cookpad.prism.dao.PrismSmallObject" alias="PrismSmallObject" />
+        <typeAlias type="com.cookpad.prism.dao.PrismTable" alias="PrismTable" />
+        <typeAlias type="com.cookpad.prism.dao.PrismMergeRange" alias="PrismMergeRange" />
+        <typeAlias type="com.cookpad.prism.dao.PrismPartition" alias="PrismPartition" />
+        <typeAlias type="com.cookpad.prism.dao.PrismMergeJob" alias="PrismMergeJob" />
+    </typeAliases>
+</configuration>

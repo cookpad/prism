@@ -1,0 +1,2 @@
+mybatis:
+    config-location: mybatis-config.xml

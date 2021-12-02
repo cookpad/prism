@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cookpad.prism.dao.PrismMergeJobMapper">
+    <resultMap id="prismMergeJobMap" type="PrismMergeJob">
+        <id property="id" column="prism_merge_job_id" />
+        <result property="partitionId" column="prism_partition_id" />
+        <result property="scheduleTime" column="schedule_time" />
+        <result property="ongoingMark" column="ongoing_mark" />
+        <result property="heartbeatTime" column="heartbeat_time" />
+    </resultMap>
+
+    <insert id="enqueue">
+    <![CDATA[
+        insert into prism_merge_jobs(
+            prism_partition_id
+            , schedule_time
+            , ongoing_mark
+        )
+        select
+            #{partitionId}
+            , #{scheduleTime}
+            , 0
+        on conflict do nothing
+        ;
+    ]]>
+    </insert>
+
+    <insert id="retry">
+    <![CDATA[
+        insert into prism_merge_jobs(
+            prism_partition_id
+            , schedule_time
+            , ongoing_mark
+        )
+        select
+            #{partitionId}
+            , #{scheduleTime}
+            , 0
+        on conflict (prism_partition_id, ongoing_mark) do
+        update
+        set
+            schedule_time = #{scheduleTime}
+        ;
+    ]]>
+    </insert>
+
+    <delete id="delete">
+    <![CDATA[
+        delete from prism_merge_jobs
+        where
+            prism_merge_job_id = #{id}
+        ;
+    ]]>
+    </delete>
+
+    <select id="dequeue" resultMap="prismMergeJobMap">
+    <![CDATA[
+        update prism_merge_jobs
+        set
+            ongoing_mark = prism_merge_job_id
+            , heartbeat_time = #{now}
+        where
+            prism_merge_job_id = (
+                select
+                    prism_merge_job_id
+                from
+                    prism_merge_jobs as j
+                where
+                    ongoing_mark = 0
+                    and schedule_time <= #{now}
+                order by
+                    schedule_time asc
+                limit 1
+            )
+        returning
+            prism_merge_job_id
+            , prism_partition_id
+            , schedule_time
+            , ongoing_mark
+            , heartbeat_time
+        ;
+    ]]>
+    </select>
+
+    <select id="findTimedoutJobs" resultMap="prismMergeJobMap">
+    <![CDATA[
+        select
+            prism_merge_job_id
+            , prism_partition_id
+            , schedule_time
+            , ongoing_mark
+            , heartbeat_time
+        from
+            prism_merge_jobs as j
+        where
+            j.ongoing_mark > 0
+            and j.heartbeat_time < #{timedoutPeriod}
+        order by
+            j.heartbeat_time asc
+        limit
+            #{limit}
+    ]]>
+    </select>
+</mapper>

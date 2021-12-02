@@ -1,0 +1,27 @@
+# This config file is for *PRODUCTION*
+
+spring:
+    main:
+        banner-mode: "off"
+    datasource:
+        # database endpoint will be injected by environment variables
+        driver-class-name: org.postgresql.Driver
+        hikari:
+            maximum-pool-size: 2
+            minimum-idle: 1
+
+prism:
+    bucket-name: prism-example-bucket
+    prefix: ""
+    catalog:
+        database-prefix: ""
+        database-suffix: ""
+
+logging:
+    level:
+        root: INFO
+        com.cookpad.prism: INFO
+        com.cookpad.prism.dao: INFO
+        com.cookpad.prism.dao.PrismTableMapper.drop: TRACE
+        org.apache.parquet: WARN
+        org.apache.hadoop: WARN

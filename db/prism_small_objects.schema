@@ -1,0 +1,16 @@
+create_table "prism_small_objects", primary_key: "prism_small_object_id", id: :bigint, force: :cascade do |t|
+  t.bigint   "prism_staging_object_id", null: false
+  t.bigint   "prism_partition_id", null: false
+  t.boolean  "delayed", null: false
+  t.bigint   "content_length", null: false
+  t.datetime "upload_start_time", null: false
+end
+
+add_index "prism_small_objects", ["prism_staging_object_id", "prism_partition_id"],
+  name: "prism_small_objects_prism_staging_object_id_partition_id_idx",
+  unique: true,
+  using: :btree
+
+add_index "prism_small_objects", ["prism_partition_id"],
+  name: "prism_small_objects_prism_partition_id_idx",
+  using: :btree

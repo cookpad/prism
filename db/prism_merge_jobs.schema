@@ -1,0 +1,21 @@
+create_table "prism_merge_jobs", primary_key: "prism_merge_job_id", id: :bigint, force: :cascade do |t|
+  t.bigint   "prism_partition_id", null: false
+  t.datetime "schedule_time", null: false
+  t.bigint   "ongoing_mark", null: false
+  t.datetime "heartbeat_time", null: true
+end
+
+add_index "prism_merge_jobs", ["prism_partition_id", "ongoing_mark"],
+  name: "prism_merge_jobs_prism_partition_id_pending_idx",
+  using: :btree,
+  unique: true
+
+add_index "prism_merge_jobs", ["schedule_time"],
+  name: "prism_merge_jobs_pending_idx",
+  using: :btree,
+  where: '(ongoing_mark = 0)'
+
+add_index "prism_merge_jobs", ["heartbeat_time"],
+  name: "prism_merge_jobs_ongoing_idx",
+  using: :btree,
+  where: '(ongoing_mark > 0)'
