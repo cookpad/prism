@@ -14,6 +14,9 @@ This software is developped at Cookpad in working time.
 ## Setup
 TBD
 
+## License
+MIT license.  See LICENSE file for details.
+
 ## Authors
 - Hidekazu Kobayashi @koba789 (original author)
 - Minero Aoki @aamine (current maintainer)
