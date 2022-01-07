@@ -11,6 +11,12 @@ This software is developped at Cookpad in working time.
 % ./gradlew build
 ```
 
+## Components
+- stream/: Prism Stream converts JSONL S3 objects to Parquet objects.
+- merge/: Prism Merge merges small Parquet objects into large one.
+- batch/: Prism Batch Jobs update Glue Catalog to reflect latest partition info.
+- gc/: Prism GC deletes unused merged objects.
+
 ## Setup
 TBD
 
