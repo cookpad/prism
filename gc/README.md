@@ -1,14 +1,14 @@
 # Prism GC
 
-Ruby application to delete unused S3 objects on the Prism bucket.
+Prism GC is a Ruby application to delete unused S3 objects on the Prism bucket.
 
 Prism continously rebuilds merged objects again and again when a new small object is coming,
-to keep a partition data up to date.  But when Prism updates a merged partition, old merged
-objects are left.  So there are so many old, unused merged objects on the Prism bucket.
-This application collects and deletes such unused objects.
+to keep partition data up to date.  But when Prism updates a merged partition, Prism does not
+delete old merged objects -- so there are so many old, unused merged objects on the Prism bucket.
+Prism GC application collects and deletes such unused objects.
 
-Prism does not update merged objects in the partitions older than 14 days, applying GC to
-partitions which is 15 or 16 days older is safe and recommended.
+Prism does not update partitions older than 14 days, applying GC to partitions which is
+15 or 16 days old is safe and recommended.
 
 ## Usage
 
