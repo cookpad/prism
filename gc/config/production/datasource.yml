@@ -1,0 +1,13 @@
+#
+# production data sources
+#
+
+prism:
+  type: psql
+  host: <%= ENV['PRISM_DB_HOST'] %>
+  port: <%= ENV['PRISM_DB_PORT'] %>
+  database: <%= ENV['PRISM_DB_DATABASE'] %>
+  username: <%= ENV['PRISM_DB_USERNAME'] %>
+  password: <%= ENV['PRISM_DB_PASSWORD'] %>
+  encoding: utf8
+  sql_log_level: info

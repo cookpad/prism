@@ -1,0 +1,5 @@
+source 'https://rubygems.org'
+
+gem 'bricolage', '6.0.0beta6'
+gem 'aws-sdk-glue'
+gem 'aws-sdk-s3'

@@ -1,0 +1,15 @@
+#
+# development data sources
+#
+
+% pgpassfile = ENV['PGPASSFILE'] || user_home_relative_path('.pgpass')
+
+prism:
+  type: psql
+  host: localhost
+  port: 5432
+  database: prism
+  username: prism
+  pgpass: <%= pgpassfile %>
+  encoding: utf8
+  sql_log_level: debug
