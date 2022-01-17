@@ -10,7 +10,7 @@ subprojects {
     targetCompatibility = 11
 
     repositories {
-        jcenter()
+        mavenCentral()
     }
 
     dependencies {
