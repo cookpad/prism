@@ -136,8 +136,6 @@ public class Main {
         DateRange ignoreDateRange = new DateRange(
             Optional.ofNullable(prismConf.getIgnoreFromExclusive()).map(LocalDate::parse),
             Optional.ofNullable(prismConf.getIgnoreToInclusive()).map(LocalDate::parse));
-        boolean isIn = ignoreDateRange.contains(LocalDate.of(2018, 10, 1));
-        System.out.println(isIn);
         return new StagingObjectDispatcher(stagingObjectHandler, stagingObjectMapper, unknownStagingObjectMapper, packetStreamMapper, ignoreDateRange);
     }
 
