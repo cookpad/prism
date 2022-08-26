@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+      - gh-actions-test
+  pull_request:
+
+jobs:
+  test:
+    name: gradle test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        java:
+          - 11
+          # TODO: Support Java 17
+          # - 17
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK ${{ matrix.java }}
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: corretto
+          cache: gradle
+      - name: Create fake REVISION file
+        run: echo fake > REVISION
+      - run: ./gradlew test --no-daemon
