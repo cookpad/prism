@@ -23,6 +23,7 @@ jib {
     }
     container {
         jvmFlags = []
+        workingDirectory = '/app'
     }
 }
 tasks.jib.dependsOn ':shared:docker'
