@@ -13,5 +13,5 @@ RUN tar xf hadoop-${HADOOP_VERSION}.tar.gz && mv hadoop-${HADOOP_VERSION} hadoop
 
 FROM public.ecr.aws/amazoncorretto/amazoncorretto:11
 
-RUN yum install -y snappy
+RUN yum install -y snappy && yum clean all && rm -rf /var/cache/yum
 COPY --from=hadoop-libs /tmp/hadoop/lib/native/lib*.so /usr/lib64/
