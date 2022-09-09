@@ -120,39 +120,39 @@ public class ParquetConverterTest {
     }
 
     @Test
-    public void testIsAcceptableDelay() throws Exception {
+    public void testIsMergeableDelay() throws Exception {
         var now = LocalDateTime.of(2020,6,20,0,0);
-        assertFalse(ParquetConverter.isAcceptableDelay(LocalDate.of(2020,6,3), now));
-        assertTrue(ParquetConverter.isAcceptableDelay(LocalDate.of(2020,6,4), now));
-        assertTrue(ParquetConverter.isAcceptableDelay(LocalDate.of(2020,6,5), now));
-        assertTrue(ParquetConverter.isAcceptableDelay(LocalDate.of(2020,6,19), now));
-        assertTrue(ParquetConverter.isAcceptableDelay(LocalDate.of(2020,6,20), now));
-        assertTrue(ParquetConverter.isAcceptableDelay(LocalDate.of(2020,6,21), now));
-        assertFalse(ParquetConverter.isAcceptableDelay(LocalDate.of(2020,6,22), now));
+        assertFalse(ParquetConverter.isMergeableDelay(LocalDate.of(2020,6,3), now));
+        assertTrue(ParquetConverter.isMergeableDelay(LocalDate.of(2020,6,4), now));
+        assertTrue(ParquetConverter.isMergeableDelay(LocalDate.of(2020,6,5), now));
+        assertTrue(ParquetConverter.isMergeableDelay(LocalDate.of(2020,6,19), now));
+        assertTrue(ParquetConverter.isMergeableDelay(LocalDate.of(2020,6,20), now));
+        assertTrue(ParquetConverter.isMergeableDelay(LocalDate.of(2020,6,21), now));
+        assertFalse(ParquetConverter.isMergeableDelay(LocalDate.of(2020,6,22), now));
 
         now = LocalDateTime.of(2020,6,20,0,59);
-        assertFalse(ParquetConverter.isAcceptableDelay(LocalDate.of(2020,6,3), now));
-        assertTrue(ParquetConverter.isAcceptableDelay(LocalDate.of(2020,6,4), now));
-        assertTrue(ParquetConverter.isAcceptableDelay(LocalDate.of(2020,6,5), now));
+        assertFalse(ParquetConverter.isMergeableDelay(LocalDate.of(2020,6,3), now));
+        assertTrue(ParquetConverter.isMergeableDelay(LocalDate.of(2020,6,4), now));
+        assertTrue(ParquetConverter.isMergeableDelay(LocalDate.of(2020,6,5), now));
 
         now = LocalDateTime.of(2020,6,20,1,0);
-        assertFalse(ParquetConverter.isAcceptableDelay(LocalDate.of(2020,6,3), now));
-        assertFalse(ParquetConverter.isAcceptableDelay(LocalDate.of(2020,6,4), now));
-        assertTrue(ParquetConverter.isAcceptableDelay(LocalDate.of(2020,6,5), now));
+        assertFalse(ParquetConverter.isMergeableDelay(LocalDate.of(2020,6,3), now));
+        assertFalse(ParquetConverter.isMergeableDelay(LocalDate.of(2020,6,4), now));
+        assertTrue(ParquetConverter.isMergeableDelay(LocalDate.of(2020,6,5), now));
 
         now = LocalDateTime.of(2020,6,20,22,0);
-        assertTrue(ParquetConverter.isAcceptableDelay(LocalDate.of(2020,6,21), now));
-        assertFalse(ParquetConverter.isAcceptableDelay(LocalDate.of(2020,6,22), now));
-        assertFalse(ParquetConverter.isAcceptableDelay(LocalDate.of(2020,6,23), now));
+        assertTrue(ParquetConverter.isMergeableDelay(LocalDate.of(2020,6,21), now));
+        assertFalse(ParquetConverter.isMergeableDelay(LocalDate.of(2020,6,22), now));
+        assertFalse(ParquetConverter.isMergeableDelay(LocalDate.of(2020,6,23), now));
 
         now = LocalDateTime.of(2020,6,20,22,59);
-        assertTrue(ParquetConverter.isAcceptableDelay(LocalDate.of(2020,6,21), now));
-        assertFalse(ParquetConverter.isAcceptableDelay(LocalDate.of(2020,6,22), now));
-        assertFalse(ParquetConverter.isAcceptableDelay(LocalDate.of(2020,6,23), now));
+        assertTrue(ParquetConverter.isMergeableDelay(LocalDate.of(2020,6,21), now));
+        assertFalse(ParquetConverter.isMergeableDelay(LocalDate.of(2020,6,22), now));
+        assertFalse(ParquetConverter.isMergeableDelay(LocalDate.of(2020,6,23), now));
 
         now = LocalDateTime.of(2020,6,20,23,0);
-        assertTrue(ParquetConverter.isAcceptableDelay(LocalDate.of(2020,6,21), now));
-        assertTrue(ParquetConverter.isAcceptableDelay(LocalDate.of(2020,6,22), now));
-        assertFalse(ParquetConverter.isAcceptableDelay(LocalDate.of(2020,6,23), now));
+        assertTrue(ParquetConverter.isMergeableDelay(LocalDate.of(2020,6,21), now));
+        assertTrue(ParquetConverter.isMergeableDelay(LocalDate.of(2020,6,22), now));
+        assertFalse(ParquetConverter.isMergeableDelay(LocalDate.of(2020,6,23), now));
     }
 }

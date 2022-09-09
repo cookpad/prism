@@ -128,7 +128,7 @@ public class ParquetConverter implements StagingObjectHandler {
                 } else {
                     prismObjectStore.putLiveObjectFile(dt, stagingObject.getId(), file);
                 }
-                if (isAcceptableDelay(dt, now)) {
+                if (isMergeableDelay(dt, now)) {
                     LocalDateTime scheduleTime = table.scheduleTime(now);
                     this.mergeJobMapper.enqueue(partition.getId(), scheduleTime);
                 }
@@ -138,14 +138,14 @@ public class ParquetConverter implements StagingObjectHandler {
         }
     }
 
-    static final long ACCEPTABLE_DELAY_DAYS = 14;
+    static final long MERGEABLE_DELAY_DAYS = 14;
 
-    static boolean isAcceptableDelay(LocalDate partitionDate, LocalDateTime now) {
+    static boolean isMergeableDelay(LocalDate partitionDate, LocalDateTime now) {
         // +1 day as max timezone offset
         // +1 hour for spare (processing delay, S3 event delay, etc)
-        LocalDate minAcceptableDate = now.minusDays(ACCEPTABLE_DELAY_DAYS + 1).minusHours(1).toLocalDate();
-        LocalDate maxAcceptableDate = now.plusDays(1).plusHours(1).toLocalDate();
-        return (partitionDate.isEqual(minAcceptableDate) || partitionDate.isAfter(minAcceptableDate))
-            && (partitionDate.isEqual(maxAcceptableDate) || partitionDate.isBefore(maxAcceptableDate));
+        LocalDate minMergeableDate = now.minusDays(MERGEABLE_DELAY_DAYS + 1).minusHours(1).toLocalDate();
+        LocalDate maxMergeableDate = now.plusDays(1).plusHours(1).toLocalDate();
+        return (partitionDate.isEqual(minMergeableDate) || partitionDate.isAfter(minMergeableDate))
+            && (partitionDate.isEqual(maxMergeableDate) || partitionDate.isBefore(maxMergeableDate));
     }
 }
