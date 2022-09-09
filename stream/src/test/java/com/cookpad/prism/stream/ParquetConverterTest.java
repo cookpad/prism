@@ -155,4 +155,25 @@ public class ParquetConverterTest {
         assertTrue(ParquetConverter.isMergeableDelay(LocalDate.of(2020,6,22), now));
         assertFalse(ParquetConverter.isMergeableDelay(LocalDate.of(2020,6,23), now));
     }
+
+    @Test
+    public void testIsAcceptable() throws Exception {
+        LocalDateTime now = LocalDateTime.of(2022, 9, 9, 0, 0);
+
+        assertTrue(ParquetConverter.isAcceptable(LocalDate.of(2022, 9, 9), now));
+        assertTrue(ParquetConverter.isAcceptable(LocalDate.of(2022, 8, 19), now));
+        assertFalse(ParquetConverter.isAcceptable(LocalDate.of(2022, 8, 18), now));
+
+        assertTrue(ParquetConverter.isAcceptable(LocalDate.of(2022, 9, 23), now));
+        assertFalse(ParquetConverter.isAcceptable(LocalDate.of(2022, 9, 24), now));
+
+        now = LocalDateTime.of(2022, 9, 9, 23, 59);
+
+        assertTrue(ParquetConverter.isAcceptable(LocalDate.of(2022, 9, 9), now));
+        assertTrue(ParquetConverter.isAcceptable(LocalDate.of(2022, 8, 19), now));
+        assertFalse(ParquetConverter.isAcceptable(LocalDate.of(2022, 8, 18), now));
+
+        assertTrue(ParquetConverter.isAcceptable(LocalDate.of(2022, 9, 23), now));
+        assertFalse(ParquetConverter.isAcceptable(LocalDate.of(2022, 9, 24), now));
+    }
 }
