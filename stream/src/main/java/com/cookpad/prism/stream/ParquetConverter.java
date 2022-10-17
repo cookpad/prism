@@ -136,7 +136,7 @@ public class ParquetConverter implements StagingObjectHandler {
     }
 
     static final long ACCEPTABLE_PAST_DAYS = 21;
-    static final long ACCEPTABLE_FUTURE_DAYS = 14;
+    static final long ACCEPTABLE_FUTURE_DAYS = 3;
 
     static boolean isAcceptable(LocalDate partitionDate, LocalDateTime now) {
         LocalDate min = now.minusDays(ACCEPTABLE_PAST_DAYS).toLocalDate();

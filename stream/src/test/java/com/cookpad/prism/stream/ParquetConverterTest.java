@@ -164,8 +164,8 @@ public class ParquetConverterTest {
         assertTrue(ParquetConverter.isAcceptable(LocalDate.of(2022, 8, 19), now));
         assertFalse(ParquetConverter.isAcceptable(LocalDate.of(2022, 8, 18), now));
 
-        assertTrue(ParquetConverter.isAcceptable(LocalDate.of(2022, 9, 23), now));
-        assertFalse(ParquetConverter.isAcceptable(LocalDate.of(2022, 9, 24), now));
+        assertTrue(ParquetConverter.isAcceptable(LocalDate.of(2022, 9, 12), now));
+        assertFalse(ParquetConverter.isAcceptable(LocalDate.of(2022, 9, 13), now));
 
         now = LocalDateTime.of(2022, 9, 9, 23, 59);
 
@@ -173,7 +173,7 @@ public class ParquetConverterTest {
         assertTrue(ParquetConverter.isAcceptable(LocalDate.of(2022, 8, 19), now));
         assertFalse(ParquetConverter.isAcceptable(LocalDate.of(2022, 8, 18), now));
 
-        assertTrue(ParquetConverter.isAcceptable(LocalDate.of(2022, 9, 23), now));
-        assertFalse(ParquetConverter.isAcceptable(LocalDate.of(2022, 9, 24), now));
+        assertTrue(ParquetConverter.isAcceptable(LocalDate.of(2022, 9, 12), now));
+        assertFalse(ParquetConverter.isAcceptable(LocalDate.of(2022, 9, 13), now));
     }
 }
