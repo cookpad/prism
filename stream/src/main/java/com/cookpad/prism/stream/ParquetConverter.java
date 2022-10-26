@@ -62,9 +62,6 @@ public class ParquetConverter implements StagingObjectHandler {
     private final SchemaBuilder schemaBuilder;
     private final Clock clock;
 
-    // FIXME: fixed lower bound: 2018-01-01 (inclusive)
-    static final LocalDate PARTITION_DATE_LOWER_BOUND = LocalDate.of(2018, 1, 1);
-
     @Override
     public void handleStagingObject(@NonNull PrismStagingObject stagingObject, @NonNull StagingObjectAttributes attrs, @NonNull OneToMany<PacketStream, StreamColumn> packetStreamWithColumns, @NonNull PrismTable table) throws UnknownObjectException {
         Schema schema;
@@ -74,6 +71,7 @@ public class ParquetConverter implements StagingObjectHandler {
             throw new UnknownObjectException(e);
         }
         TempFile.Factory tempFileFactory = new TempFile.Factory("prism-stream-", ".parquet");
+        LocalDateTime now = LocalDateTime.ofInstant(clock.instant(), ZoneOffset.UTC);
         try (PartitionCollector partitionCollector = new PartitionCollector()) {
             ArrayList<DateAttachedRecord> recordsBuffer = new ArrayList<>(80000);
             try (
@@ -88,7 +86,7 @@ public class ParquetConverter implements StagingObjectHandler {
                 long discarded = 0;
                 while ((record = recordReader.read()) != null) {
                     var dt = record.getPartitionDate();
-                    if (dt.isAfter(PARTITION_DATE_LOWER_BOUND) || dt.isEqual(PARTITION_DATE_LOWER_BOUND)) {
+                    if (isAcceptable(dt, now)) {
                         recordsBuffer.add(record);
                     }
                     else {
@@ -96,7 +94,7 @@ public class ParquetConverter implements StagingObjectHandler {
                     }
                 }
                 if (discarded > 0) {
-                    log.info("{}: too old records discarded: count={}", stagingObject.getObjectUri(), discarded);
+                    log.info("{}: too past/future records discarded: count={}", stagingObject.getObjectUri(), discarded);
                 }
             }
 
@@ -119,7 +117,6 @@ public class ParquetConverter implements StagingObjectHandler {
             for (Entry<LocalDate, Path> entry: partitions.entrySet()) {
                 LocalDate dt = entry.getKey();
                 File file = entry.getValue().toFile();
-                LocalDateTime now = LocalDateTime.ofInstant(clock.instant(), ZoneOffset.UTC);
                 PrismPartition partition = this.partitionMapper.createPartitionIfNotExists(table.getId(), dt);
                 long contentLength = file.length();
                 PrismSmallObject smallObject = this.smallObjectMapper.findOrCreateByParams(stagingObject.getId(), partition.getId(), now, contentLength);
@@ -128,7 +125,7 @@ public class ParquetConverter implements StagingObjectHandler {
                 } else {
                     prismObjectStore.putLiveObjectFile(dt, stagingObject.getId(), file);
                 }
-                if (isAcceptableDelay(dt, now)) {
+                if (isMergeableDelay(dt, now)) {
                     LocalDateTime scheduleTime = table.scheduleTime(now);
                     this.mergeJobMapper.enqueue(partition.getId(), scheduleTime);
                 }
@@ -138,14 +135,23 @@ public class ParquetConverter implements StagingObjectHandler {
         }
     }
 
-    static final long ACCEPTABLE_DELAY_DAYS = 14;
+    static final long ACCEPTABLE_PAST_DAYS = 21;
+    static final long ACCEPTABLE_FUTURE_DAYS = 3;
 
-    static boolean isAcceptableDelay(LocalDate partitionDate, LocalDateTime now) {
+    static boolean isAcceptable(LocalDate partitionDate, LocalDateTime now) {
+        LocalDate min = now.minusDays(ACCEPTABLE_PAST_DAYS).toLocalDate();
+        LocalDate max = now.plusDays(ACCEPTABLE_FUTURE_DAYS).toLocalDate();
+        return min.compareTo(partitionDate) <= 0 && partitionDate.compareTo(max) <= 0;
+    }
+
+    static final long MERGEABLE_DELAY_DAYS = 14;
+
+    static boolean isMergeableDelay(LocalDate partitionDate, LocalDateTime now) {
         // +1 day as max timezone offset
         // +1 hour for spare (processing delay, S3 event delay, etc)
-        LocalDate minAcceptableDate = now.minusDays(ACCEPTABLE_DELAY_DAYS + 1).minusHours(1).toLocalDate();
-        LocalDate maxAcceptableDate = now.plusDays(1).plusHours(1).toLocalDate();
-        return (partitionDate.isEqual(minAcceptableDate) || partitionDate.isAfter(minAcceptableDate))
-            && (partitionDate.isEqual(maxAcceptableDate) || partitionDate.isBefore(maxAcceptableDate));
+        LocalDate minMergeableDate = now.minusDays(MERGEABLE_DELAY_DAYS + 1).minusHours(1).toLocalDate();
+        LocalDate maxMergeableDate = now.plusDays(1).plusHours(1).toLocalDate();
+        return (partitionDate.isEqual(minMergeableDate) || partitionDate.isAfter(minMergeableDate))
+            && (partitionDate.isEqual(maxMergeableDate) || partitionDate.isBefore(maxMergeableDate));
     }
 }
