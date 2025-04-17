@@ -9,10 +9,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.ObjectTagging;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.Tag;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,8 +25,21 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class PrismObjectStore implements SmallObjectStore, MergedObjectStore {
+    private static final String PRISM_OBJECT_TYPE_KEY = "PrismObjectType";
+    private static final String MERGED_OBJECT_TYPE = "merged";
+    private static final String LIVE_OBJECT_TYPE = "live";
+    private static final String DELAYED_OBJECT_TYPE = "delayed";
+
     final private AmazonS3 s3;
     final private PrismTableLocator locator;
+
+    private PutObjectRequest createPutRequestWithTag(String bucketName, String key, File content, String tagValue) {
+        PutObjectRequest putRequest = new PutObjectRequest(bucketName, key, content);
+        List<Tag> tags = new ArrayList<>();
+        tags.add(new Tag(PRISM_OBJECT_TYPE_KEY, tagValue));
+        putRequest.setTagging(new ObjectTagging(tags));
+        return putRequest;
+    }
 
     @Override
     public InputStream getLiveObject(LocalDate dt, long objectId) {
@@ -44,7 +62,11 @@ public class PrismObjectStore implements SmallObjectStore, MergedObjectStore {
     public String putLiveObjectFile(LocalDate dt, long objectId, File content) {
         String key = locator.getLiveObjectKey(dt, objectId);
         log.info("PutObject (live) key={}", key);
-        s3.putObject(locator.getBucketName(), key, content);
+
+        PutObjectRequest putRequest = createPutRequestWithTag(
+            locator.getBucketName(), key, content, LIVE_OBJECT_TYPE);
+
+        s3.putObject(putRequest);
         return key;
     }
 
@@ -69,7 +91,11 @@ public class PrismObjectStore implements SmallObjectStore, MergedObjectStore {
     public String putDelayedObjectFile(LocalDate dt, long objectId, File content) {
         String key = locator.getDelayedObjectKey(dt, objectId);
         log.info("PutObject (delayed) key={}", key);
-        s3.putObject(locator.getBucketName(), key, content);
+
+        PutObjectRequest putRequest = createPutRequestWithTag(
+            locator.getBucketName(), key, content, DELAYED_OBJECT_TYPE);
+
+        s3.putObject(putRequest);
         return key;
     }
 
@@ -94,7 +120,11 @@ public class PrismObjectStore implements SmallObjectStore, MergedObjectStore {
     public String putMergedObjectFile(LocalDate dt, long lowerBound, long upperBound, File content) {
         String key = locator.getMergedObjectKey(dt, lowerBound, upperBound);
         log.info("PutObject (merged) key={}", key);
-        s3.putObject(locator.getBucketName(), key, content);
+
+        PutObjectRequest putRequest = createPutRequestWithTag(
+            locator.getBucketName(), key, content, MERGED_OBJECT_TYPE);
+
+        s3.putObject(putRequest);
         return key;
     }
 
