@@ -26,17 +26,24 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PrismObjectStore implements SmallObjectStore, MergedObjectStore {
     private static final String PRISM_OBJECT_TYPE_KEY = "PrismObjectType";
-    private static final String MERGED_OBJECT_TYPE = "merged";
-    private static final String LIVE_OBJECT_TYPE = "live";
-    private static final String DELAYED_OBJECT_TYPE = "delayed";
 
     final private AmazonS3 s3;
     final private PrismTableLocator locator;
 
-    private PutObjectRequest createPutRequestWithTag(String bucketName, String key, File content, String tagValue) {
+    private enum PrismObjectType {
+        MERGED,
+        LIVE,
+        DELAYED;
+
+        public String getTagValue() {
+            return this.name().toLowerCase();
+        }
+    }
+
+    private PutObjectRequest createPutRequestWithTag(String bucketName, String key, File content, PrismObjectType prismObjectType) {
         PutObjectRequest putRequest = new PutObjectRequest(bucketName, key, content);
         List<Tag> tags = new ArrayList<>();
-        tags.add(new Tag(PRISM_OBJECT_TYPE_KEY, tagValue));
+        tags.add(new Tag(PRISM_OBJECT_TYPE_KEY, prismObjectType.getTagValue()));
         putRequest.setTagging(new ObjectTagging(tags));
         return putRequest;
     }
@@ -64,7 +71,7 @@ public class PrismObjectStore implements SmallObjectStore, MergedObjectStore {
         log.info("PutObject (live) key={}", key);
 
         PutObjectRequest putRequest = createPutRequestWithTag(
-            locator.getBucketName(), key, content, LIVE_OBJECT_TYPE);
+            locator.getBucketName(), key, content, PrismObjectType.LIVE);
 
         s3.putObject(putRequest);
         return key;
@@ -93,7 +100,7 @@ public class PrismObjectStore implements SmallObjectStore, MergedObjectStore {
         log.info("PutObject (delayed) key={}", key);
 
         PutObjectRequest putRequest = createPutRequestWithTag(
-            locator.getBucketName(), key, content, DELAYED_OBJECT_TYPE);
+            locator.getBucketName(), key, content, PrismObjectType.DELAYED);
 
         s3.putObject(putRequest);
         return key;
@@ -122,7 +129,7 @@ public class PrismObjectStore implements SmallObjectStore, MergedObjectStore {
         log.info("PutObject (merged) key={}", key);
 
         PutObjectRequest putRequest = createPutRequestWithTag(
-            locator.getBucketName(), key, content, MERGED_OBJECT_TYPE);
+            locator.getBucketName(), key, content, PrismObjectType.MERGED);
 
         s3.putObject(putRequest);
         return key;
