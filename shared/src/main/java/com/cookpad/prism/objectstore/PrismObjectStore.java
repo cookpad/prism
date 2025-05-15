@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.amazonaws.services.s3.AmazonS3;
@@ -41,11 +42,10 @@ public class PrismObjectStore implements SmallObjectStore, MergedObjectStore {
     }
 
     private PutObjectRequest createPutRequestWithTag(String bucketName, String key, File content, PrismObjectType prismObjectType) {
-        PutObjectRequest putRequest = new PutObjectRequest(bucketName, key, content);
-        List<Tag> tags = new ArrayList<>();
-        tags.add(new Tag(PRISM_OBJECT_TYPE_KEY, prismObjectType.getTagValue()));
-        putRequest.setTagging(new ObjectTagging(tags));
-        return putRequest;
+        return new PutObjectRequest(bucketName, key, content)
+        .withTagging(new ObjectTagging(List.of(
+            new Tag(PRISM_OBJECT_TYPE_KEY, prismObjectType.getTagValue())
+        )));
     }
 
     @Override
