@@ -4,7 +4,7 @@ ARG HADOOP_VERSION=3.3.4
 RUN yum install -y tar gzip
 
 WORKDIR /tmp
-RUN curl -sSfO "https://dlcdn.apache.org/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz{,.sha512,.asc}"
+RUN curl -sSfO "https://archive.apache.org/dist/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz{,.sha512,.asc}"
 RUN curl -sSf https://downloads.apache.org/hadoop/common/KEYS | gpg --import
 RUN sha512sum -c hadoop-${HADOOP_VERSION}.tar.gz.sha512
 RUN gpg --verify hadoop-${HADOOP_VERSION}.tar.gz.asc
