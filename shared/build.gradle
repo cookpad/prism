@@ -20,6 +20,7 @@ dependencies {
 configurations.all {
     exclude module: 'slf4j-log4j12'
     exclude module: 'log4j'
+    exclude module: 'slf4j-reload4j'
 }
 
 docker {
