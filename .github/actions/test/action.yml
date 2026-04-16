@@ -1,0 +1,14 @@
+name: Test
+description: Run tests
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-java@v5
+      with:
+        java-version: 11
+        distribution: corretto
+        cache: gradle
+    - run: echo ${GITHUB_SHA} > REVISION
+      shell: bash
+    - run: ./gradlew test --no-daemon
+      shell: bash
