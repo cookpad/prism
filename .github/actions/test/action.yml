@@ -5,7 +5,7 @@ runs:
   steps:
     - uses: actions/setup-java@v5
       with:
-        java-version: 11
+        java-version: 17
         distribution: corretto
         cache: gradle
     - run: echo ${GITHUB_SHA} > REVISION

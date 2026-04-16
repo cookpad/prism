@@ -6,23 +6,23 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'com.github.spotbugs'
 
-    sourceCompatibility = 11
-    targetCompatibility = 11
+    sourceCompatibility = 17
+    targetCompatibility = 17
 
     repositories {
         mavenCentral()
     }
 
     dependencies {
-        annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.6'
-        compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.6'
+        annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.30'
+        compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.30'
         testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.4.0'
         testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.4.0'
         testImplementation group: 'org.junit.platform', name: 'junit-platform-launcher', version: '1.4.0'
         testImplementation group: 'org.junit.platform', name: 'junit-platform-commons', version: '1.4.0'
         testImplementation group: "org.mockito", name: "mockito-core", version: "2.24.5"
-        testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.6'
-        testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.6'
+        testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.30'
+        testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.30'
     }
 
     test {

@@ -4,7 +4,7 @@ Prism is a scalable, fast Redshift Spectrum Streaming Loader.
 This software is developped at Cookpad in working time.
 
 ## Prerequisites
-- OpenJDK 11
+- OpenJDK 17
     - Tested with Amazon Corretto only, but other distributions like Eclipse Temurin should also work.
 
 ## Build
