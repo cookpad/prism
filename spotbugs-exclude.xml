@@ -5,4 +5,10 @@
     <!-- This is a workaround for the bug: https://github.com/spotbugs/spotbugs/issues/756 -->
     <Bug code="RCN" />
   </Match>
+  <Match>
+    <Bug code="EI,EI2" />
+  </Match>
+  <Match>
+    <Bug code="CT" />
+  </Match>
 </FindBugsFilter>

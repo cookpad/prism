@@ -1,5 +1,5 @@
 plugins {
-    id "com.github.spotbugs" version "2.0.0" apply false
+    id "com.github.spotbugs" version "5.2.5" apply false
 }
 
 subprojects {
@@ -16,11 +16,10 @@ subprojects {
     dependencies {
         annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.30'
         compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.30'
-        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.4.0'
-        testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.4.0'
-        testImplementation group: 'org.junit.platform', name: 'junit-platform-launcher', version: '1.4.0'
-        testImplementation group: 'org.junit.platform', name: 'junit-platform-commons', version: '1.4.0'
-        testImplementation group: "org.mockito", name: "mockito-core", version: "2.24.5"
+        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.8.2'
+        testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.8.2'
+        testRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-launcher', version: '1.8.2'
+        testImplementation group: "org.mockito", name: "mockito-core", version: "4.11.0"
         testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.30'
         testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.30'
     }
@@ -33,13 +32,11 @@ subprojects {
         }
     }
 
-    tasks.withType(com.github.spotbugs.SpotBugsTask) {
-        reports {
-            xml.enabled = false
-            html.enabled = true
-        }
+    tasks.withType(com.github.spotbugs.snom.SpotBugsTask) {
+        reports.maybeCreate("html").required.set(true)
+        reports.maybeCreate("xml").required.set(false)
     }
     spotbugs {
-        excludeFilter = rootProject.file("spotbugs-exclude.xml")
+        excludeFilter.set(rootProject.file("spotbugs-exclude.xml"))
     }
 }
