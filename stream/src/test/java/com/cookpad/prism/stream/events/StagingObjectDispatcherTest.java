@@ -76,6 +76,6 @@ public class StagingObjectDispatcherTest {
         assertThrows(EventHandler.CatchAndReleaseException.class, () -> {
             dispatcher.handleEvent(stagingObjectEvent);
         });
-        verifyZeroInteractions(stagingObjectHandler);
+        verifyNoInteractions(stagingObjectHandler);
     }
 }
