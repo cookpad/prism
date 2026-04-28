@@ -10,7 +10,6 @@ import com.cookpad.prism.StepHandler;
 import com.cookpad.prism.stream.events.EventHandler.CatchAndReleaseException;
 import com.cookpad.prism.stream.filequeue.FileQueue;
 
-import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
