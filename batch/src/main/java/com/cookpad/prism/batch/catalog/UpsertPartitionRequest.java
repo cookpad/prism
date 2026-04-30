@@ -1,9 +1,9 @@
 package com.cookpad.prism.batch.catalog;
 
-import com.amazonaws.services.glue.model.CreatePartitionRequest;
-import com.amazonaws.services.glue.model.GetPartitionRequest;
-import com.amazonaws.services.glue.model.PartitionInput;
-import com.amazonaws.services.glue.model.UpdatePartitionRequest;
+import software.amazon.awssdk.services.glue.model.CreatePartitionRequest;
+import software.amazon.awssdk.services.glue.model.GetPartitionRequest;
+import software.amazon.awssdk.services.glue.model.PartitionInput;
+import software.amazon.awssdk.services.glue.model.UpdatePartitionRequest;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -18,27 +18,27 @@ public class UpsertPartitionRequest {
     private final PartitionInput partitionInput;
 
     public GetPartitionRequest buildGetPartitionRequest() {
-        return new GetPartitionRequest()
-            .withDatabaseName(this.getDatabaseName())
-            .withTableName(this.getTableName())
-            .withPartitionValues(this.getPartitionInput().getValues())
-        ;
+        return GetPartitionRequest.builder()
+            .databaseName(this.getDatabaseName())
+            .tableName(this.getTableName())
+            .partitionValues(this.getPartitionInput().values())
+            .build();
     }
 
     public CreatePartitionRequest buildCreatePartitionRequest() {
-        return new CreatePartitionRequest()
-            .withDatabaseName(this.getDatabaseName())
-            .withTableName(this.getTableName())
-            .withPartitionInput(this.getPartitionInput())
-        ;
+        return CreatePartitionRequest.builder()
+            .databaseName(this.getDatabaseName())
+            .tableName(this.getTableName())
+            .partitionInput(this.getPartitionInput())
+            .build();
     }
 
     public UpdatePartitionRequest buildUpdatePartitionRequest() {
-        return new UpdatePartitionRequest()
-            .withDatabaseName(this.getDatabaseName())
-            .withTableName(this.getTableName())
-            .withPartitionValueList(this.getPartitionInput().getValues())
-            .withPartitionInput(this.getPartitionInput())
-        ;
+        return UpdatePartitionRequest.builder()
+            .databaseName(this.getDatabaseName())
+            .tableName(this.getTableName())
+            .partitionValueList(this.getPartitionInput().values())
+            .partitionInput(this.getPartitionInput())
+            .build();
     }
 }

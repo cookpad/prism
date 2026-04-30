@@ -7,12 +7,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.amazonaws.services.glue.model.Column;
-import com.amazonaws.services.glue.model.DatabaseInput;
-import com.amazonaws.services.glue.model.PartitionInput;
-import com.amazonaws.services.glue.model.SerDeInfo;
-import com.amazonaws.services.glue.model.StorageDescriptor;
-import com.amazonaws.services.glue.model.TableInput;
+import software.amazon.awssdk.services.glue.model.Column;
+import software.amazon.awssdk.services.glue.model.DatabaseInput;
+import software.amazon.awssdk.services.glue.model.PartitionInput;
+import software.amazon.awssdk.services.glue.model.SerDeInfo;
+import software.amazon.awssdk.services.glue.model.StorageDescriptor;
+import software.amazon.awssdk.services.glue.model.TableInput;
 
 import com.cookpad.prism.objectstore.PrismTableLocator;
 import com.cookpad.prism.record.Schema;
@@ -39,24 +39,26 @@ public class CatalogTable {
     }}
 
     private StorageDescriptor buildStorageDescriptor(String location, List<Column> columns) {
-        return new StorageDescriptor()
-            .withColumns(columns)
-            .withLocation(location)
-            .withInputFormat("org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat")
-            .withOutputFormat("org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat")
-            .withSerdeInfo(new SerDeInfo()
-                .withSerializationLibrary("org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe")
-                .withParameters(SERDE_INFO_PARAMS)
+        return StorageDescriptor.builder()
+            .columns(columns)
+            .location(location)
+            .inputFormat("org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat")
+            .outputFormat("org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat")
+            .serdeInfo(SerDeInfo.builder()
+                .serializationLibrary("org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe")
+                .parameters(SERDE_INFO_PARAMS)
+                .build()
             )
-        ;
+            .build();
     }
 
     private StorageDescriptor buildTableStorageDescriptor() {
         List<Column> columns = this.schema.getColumns()
             .stream()
-            .map(col -> new Column()
-                .withName(col.getName())
-                .withType(col.getValueType().toRedshiftTypeName())
+            .map(col -> Column.builder()
+                .name(col.getName())
+                .type(col.getValueType().toRedshiftTypeName())
+                .build()
             )
             .collect(Collectors.toList())
         ;
@@ -85,16 +87,16 @@ public class CatalogTable {
 
     public TableInput buildTableInput() {
         StorageDescriptor storageDescriptor = this.buildTableStorageDescriptor();
-        TableInput tableInput = new TableInput()
-            .withName(schema.getTableName())
-            .withPartitionKeys(new Column()
-                .withName("dt")
-                .withType("date")
+        return TableInput.builder()
+            .name(schema.getTableName())
+            .partitionKeys(Column.builder()
+                .name("dt")
+                .type("date")
+                .build()
             )
-            .withStorageDescriptor(storageDescriptor)
-            .withParameters(TABLE_PARAMS)
-        ;
-        return tableInput;
+            .storageDescriptor(storageDescriptor)
+            .parameters(TABLE_PARAMS)
+            .build();
     }
 
     public PartitionInput buildPartitionInput(LocalDate dt, boolean isSwitched, long manifestVersion) {
@@ -105,18 +107,16 @@ public class CatalogTable {
         } else {
             storageDescriptor = this.buildLivePartitionStorageDescriptor(dt);
         }
-        PartitionInput partitionInput = new PartitionInput()
-            .withValues(this.tableLocator.formatDt(dt))
-            .withStorageDescriptor(storageDescriptor)
-        ;
-        return partitionInput;
+        return PartitionInput.builder()
+            .values(this.tableLocator.formatDt(dt))
+            .storageDescriptor(storageDescriptor)
+            .build();
     }
 
     public DatabaseInput buildDatabaseInput() {
-        DatabaseInput databaseInput = new DatabaseInput()
-            .withName(this.getDatabaseName())
-        ;
-        return databaseInput;
+        return DatabaseInput.builder()
+            .name(this.getDatabaseName())
+            .build();
     }
 
     public UpsertPartitionRequest buildUpsertPartitionRequest(LocalDate dt, boolean isSwitched, long manifestVersion) {

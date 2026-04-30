@@ -24,8 +24,8 @@ public class CatalogTableTest {
         val schema = new SchemaBuilder().build(prismTable, columns);
         val locatorFactory = new PrismTableLocatorFactory("prism-sandbox", "global-prefix/");
         val catalogTable = new CatalogTable.Factory(databaseModifier).build(schema, locatorFactory.build(prismTable));
-        assertEquals("nanika_log", catalogTable.buildTableInput().getName());
-        assertEquals("prefix_test_schema_suffix", catalogTable.buildDatabaseInput().getName());
+        assertEquals("nanika_log", catalogTable.buildTableInput().name());
+        assertEquals("prefix_test_schema_suffix", catalogTable.buildDatabaseInput().name());
     }
 
     @Test
@@ -36,7 +36,7 @@ public class CatalogTableTest {
         val schema = new SchemaBuilder().build(prismTable, columns);
         val locatorFactory = new PrismTableLocatorFactory("prism-sandbox", "global-prefix/");
         val catalogTable = new CatalogTable.Factory(databaseModifier).build(schema, locatorFactory.build(prismTable));
-        assertEquals("nanika_log", catalogTable.buildTableInput().getName());
-        assertEquals("prefix_test_schema_suffix", catalogTable.buildDatabaseInput().getName());
+        assertEquals("nanika_log", catalogTable.buildTableInput().name());
+        assertEquals("prefix_test_schema_suffix", catalogTable.buildDatabaseInput().name());
     }
 }

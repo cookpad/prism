@@ -2,10 +2,8 @@ package com.cookpad.prism.batch;
 
 import java.time.Clock;
 
-import com.amazonaws.services.glue.AWSGlue;
-import com.amazonaws.services.glue.AWSGlueClientBuilder;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import software.amazon.awssdk.services.glue.GlueClient;
+import software.amazon.awssdk.services.s3.S3Client;
 
 import com.cookpad.prism.batch.catalog.DatabaseNameModifier;
 import com.cookpad.prism.objectstore.PrismObjectStoreFactory;
@@ -33,13 +31,13 @@ public class Main {
     }
 
     @Bean
-    public AmazonS3 s3() {
-        return AmazonS3ClientBuilder.defaultClient();
+    public S3Client s3() {
+        return S3Client.create();
     }
 
     @Bean
-    public AWSGlue glue() {
-        return AWSGlueClientBuilder.defaultClient();
+    public GlueClient glue() {
+        return GlueClient.create();
     }
 
     @Bean

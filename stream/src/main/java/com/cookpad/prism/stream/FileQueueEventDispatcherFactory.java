@@ -1,9 +1,8 @@
 package com.cookpad.prism.stream;
 
 import java.io.IOException;
+import java.net.URI;
 import java.time.Clock;
-
-import com.amazonaws.services.s3.AmazonS3URI;
 
 import com.cookpad.prism.stream.events.EventHandler;
 import com.cookpad.prism.stream.events.FileQueueEventDispatcher;
@@ -21,7 +20,7 @@ public class FileQueueEventDispatcherFactory {
     private final Clock clock;
 
     public FileQueueEventDispatcher build(String queueFileUrl) throws IOException {
-        AmazonS3URI uri = new AmazonS3URI(queueFileUrl);
+        URI uri = URI.create(queueFileUrl);
         FileQueue fileQueue = s3QueueDownloader.download(uri);
         return new FileQueueEventDispatcher(fileQueue, eventHandler, clock);
     }
