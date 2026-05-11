@@ -29,7 +29,7 @@ public class MergeJobDispatcher implements StepHandler {
         }
         try {
             log.info("Handling job: {}", job);
-            Sentry.getContext().addTag("merge_job", Long.toString(job.getId()));
+            Sentry.setTag("merge_job", Long.toString(job.getId()));
             JobStatus status = this.mergeJobHandler.handleJob(job);
             if (status == JobStatus.CONTINUING) {
                 this.mergeJobQueue.retry(job);
@@ -40,7 +40,7 @@ public class MergeJobDispatcher implements StepHandler {
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         } finally {
-            Sentry.getContext().removeTag("merge_job");
+            Sentry.configureScope(scope -> scope.removeTag("merge_job"));
         }
         return true;
     }

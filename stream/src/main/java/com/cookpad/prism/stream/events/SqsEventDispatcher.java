@@ -74,11 +74,11 @@ public class SqsEventDispatcher implements StepHandler {
             final String objectKey = s3Entity.getObject().getKey();
             StagingObjectEvent event = new StagingObjectEvent(bucketName, objectKey, sendTime, receiveTime);
             try {
-                Sentry.getContext().addExtra("object_url", event.getObjectUri().toString());
+                Sentry.setExtra("object_url", event.getObjectUri().toString());
                 log.info("handle event: s3://{}/{}", bucketName, objectKey);
                 this.eventHandler.handleEvent(event);
             } finally {
-                Sentry.getContext().removeExtra("object_url");
+                Sentry.configureScope(scope -> scope.removeExtra("object_url"));
             }
         }
     }
