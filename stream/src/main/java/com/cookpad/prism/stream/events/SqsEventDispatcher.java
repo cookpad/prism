@@ -5,15 +5,14 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
 
-import com.amazonaws.SdkClientException;
-import com.amazonaws.services.s3.event.S3EventNotification;
-import com.amazonaws.services.s3.event.S3EventNotification.S3Entity;
-import com.amazonaws.services.s3.event.S3EventNotification.S3EventNotificationRecord;
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.DeleteMessageRequest;
-import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
-import com.amazonaws.services.sqs.model.ReceiveMessageResult;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification;
+import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotificationRecord;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
+import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 
 import com.cookpad.prism.StepHandler;
 
@@ -24,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class SqsEventDispatcher implements StepHandler {
-    final private AmazonSQS sqs;
+    final private SqsClient sqs;
     final private String queueUrl;
     final private EventHandler eventHandler;
     final private Clock clock;
@@ -37,7 +36,7 @@ public class SqsEventDispatcher implements StepHandler {
     }
 
     private void handleMessage(Instant receiveTime, Message msg) throws ExtractException, EventHandler.CatchAndReleaseException {
-        final String msgBody = msg.getBody();
+        final String msgBody = msg.body();
         final S3EventNotification s3Event;
         final SnsEnvelope snsEnvelope;
         // At first, try parsing msgBody as a SNS Envelope.
@@ -56,7 +55,7 @@ public class SqsEventDispatcher implements StepHandler {
         }
 
         try {
-            s3Event = S3EventNotification.parseJson(s3EventMessage);
+            s3Event = S3EventNotification.fromJson(s3EventMessage);
         } catch (SdkClientException e) {
             throw new ExtractException(e);
         }
@@ -68,10 +67,9 @@ public class SqsEventDispatcher implements StepHandler {
             return;
         }
         for (S3EventNotificationRecord record: s3Event.getRecords()) {
-            final Instant sendTime = Instant.ofEpochMilli(record.getEventTime().getMillis());
-            final S3Entity s3Entity = record.getS3();
-            final String bucketName = s3Entity.getBucket().getName();
-            final String objectKey = s3Entity.getObject().getKey();
+            final Instant sendTime = record.getEventTime();
+            final String bucketName = record.getS3().getBucket().getName();
+            final String objectKey = record.getS3().getObject().getKey();
             StagingObjectEvent event = new StagingObjectEvent(bucketName, objectKey, sendTime, receiveTime);
             try {
                 Sentry.setExtra("object_url", event.getObjectUri().toString());
@@ -84,14 +82,16 @@ public class SqsEventDispatcher implements StepHandler {
     }
 
     private void receiveAndDispatch() {
-        final ReceiveMessageRequest req = new ReceiveMessageRequest(this.queueUrl);
-        req.setVisibilityTimeout(1200);
-        req.setMaxNumberOfMessages(10);
-        req.setWaitTimeSeconds(20);
+        final ReceiveMessageRequest req = ReceiveMessageRequest.builder()
+            .queueUrl(this.queueUrl)
+            .visibilityTimeout(1200)
+            .maxNumberOfMessages(10)
+            .waitTimeSeconds(20)
+            .build();
 
-        final ReceiveMessageResult msgResult = this.sqs.receiveMessage(req);
+        final ReceiveMessageResponse msgResult = this.sqs.receiveMessage(req);
         final Instant receivedTime = Instant.now(clock);
-        for (Message msg: msgResult.getMessages()) {
+        for (Message msg: msgResult.messages()) {
             try {
                 this.handleMessage(receivedTime, msg);
             } catch (EventHandler.CatchAndReleaseException e) {
@@ -101,7 +101,10 @@ public class SqsEventDispatcher implements StepHandler {
                 log.error("Encountered an error in processing event message", e);
                 continue;
             }
-            DeleteMessageRequest delReq = new DeleteMessageRequest(this.queueUrl, msg.getReceiptHandle());
+            DeleteMessageRequest delReq = DeleteMessageRequest.builder()
+                .queueUrl(this.queueUrl)
+                .receiptHandle(msg.receiptHandle())
+                .build();
             this.sqs.deleteMessage(delReq);
         }
     }

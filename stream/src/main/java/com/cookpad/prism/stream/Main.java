@@ -6,10 +6,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.sqs.SqsClient;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -56,13 +54,13 @@ public class Main {
     }
 
     @Bean
-    public AmazonSQS sqs() {
-        return AmazonSQSClientBuilder.defaultClient();
+    public SqsClient sqs() {
+        return SqsClient.create();
     }
 
     @Bean
-    public AmazonS3 s3() {
-        return AmazonS3ClientBuilder.defaultClient();
+    public S3Client s3() {
+        return S3Client.create();
     }
 
     @Bean
@@ -71,12 +69,12 @@ public class Main {
     }
 
     @Bean
-    public PrismObjectStoreFactory prismObjectStoreFactory(@Autowired AmazonS3 s3, @Autowired PrismStreamConf prismConf, @Autowired PrismTableLocatorFactory tablePrefixer) {
+    public PrismObjectStoreFactory prismObjectStoreFactory(@Autowired S3Client s3, @Autowired PrismStreamConf prismConf, @Autowired PrismTableLocatorFactory tablePrefixer) {
         return new PrismObjectStoreFactory(s3, tablePrefixer);
     }
 
     @Bean
-    public StagingObjectStore stagingObjectStore(@Autowired AmazonS3 s3) {
+    public StagingObjectStore stagingObjectStore(@Autowired S3Client s3) {
         return new StagingObjectStore(s3);
     }
 
@@ -86,12 +84,12 @@ public class Main {
     }
 
     @Bean
-    public SqsEventDispatcher sqsEventDispatcher(@Autowired AmazonSQS sqs, @Autowired EventHandler eventHandler, @Autowired PrismStreamConf prismConf) {
+    public SqsEventDispatcher sqsEventDispatcher(@Autowired SqsClient sqs, @Autowired EventHandler eventHandler, @Autowired PrismStreamConf prismConf) {
         return new SqsEventDispatcher(sqs, prismConf.getQueueUrl(), eventHandler, Clock.systemDefaultZone());
     }
 
     @Bean
-    public S3QueueDownloader s3QueueDownloader(@Autowired AmazonS3 s3) {
+    public S3QueueDownloader s3QueueDownloader(@Autowired S3Client s3) {
         return new S3QueueDownloader(s3);
     }
 

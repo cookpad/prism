@@ -1,6 +1,5 @@
 package com.cookpad.prism.objectstore;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,14 +8,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
-import java.util.List;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.ObjectTagging;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.Tag;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PrismObjectStore implements SmallObjectStore, MergedObjectStore {
     private static final String PRISM_OBJECT_TYPE_KEY = "PrismObjectType";
 
-    final private AmazonS3 s3;
+    final private S3Client s3;
     final private PrismTableLocator locator;
 
     private enum PrismObjectType {
@@ -39,19 +35,20 @@ public class PrismObjectStore implements SmallObjectStore, MergedObjectStore {
         }
     }
 
-    private PutObjectRequest createPutRequestWithTag(String bucketName, String key, File content, PrismObjectType prismObjectType) {
-        return new PutObjectRequest(bucketName, key, content)
-        .withTagging(new ObjectTagging(List.of(
-            new Tag(PRISM_OBJECT_TYPE_KEY, prismObjectType.getTagValue())
-        )));
+    private void putObjectWithTag(String bucketName, String key, File content, PrismObjectType prismObjectType) {
+        PutObjectRequest request = PutObjectRequest.builder()
+            .bucket(bucketName)
+            .key(key)
+            .tagging(PRISM_OBJECT_TYPE_KEY + "=" + prismObjectType.getTagValue())
+            .build();
+        s3.putObject(request, RequestBody.fromFile(content));
     }
 
     @Override
     public InputStream getLiveObject(LocalDate dt, long objectId) {
         String key = locator.getLiveObjectKey(dt, objectId);
         log.debug("Get live object: {}", key);
-        S3Object object = s3.getObject(locator.getBucketName(), key);
-        return object.getObjectContent();
+        return s3.getObject(GetObjectRequest.builder().bucket(locator.getBucketName()).key(key).build());
     }
 
     @Override
@@ -67,7 +64,7 @@ public class PrismObjectStore implements SmallObjectStore, MergedObjectStore {
     public String putLiveObjectFile(LocalDate dt, long objectId, File content) {
         String key = locator.getLiveObjectKey(dt, objectId);
         log.info("PutObject (live) key={}", key);
-        s3.putObject(createPutRequestWithTag(locator.getBucketName(), key, content, PrismObjectType.LIVE));
+        putObjectWithTag(locator.getBucketName(), key, content, PrismObjectType.LIVE);
         return key;
     }
 
@@ -75,8 +72,7 @@ public class PrismObjectStore implements SmallObjectStore, MergedObjectStore {
     public InputStream getDelayedObject(LocalDate dt, long objectId) {
         String key = locator.getDelayedObjectKey(dt, objectId);
         log.debug("Get delayed object: {}", key);
-        S3Object object = s3.getObject(locator.getBucketName(), key);
-        return object.getObjectContent();
+        return s3.getObject(GetObjectRequest.builder().bucket(locator.getBucketName()).key(key).build());
     }
 
     @Override
@@ -92,7 +88,7 @@ public class PrismObjectStore implements SmallObjectStore, MergedObjectStore {
     public String putDelayedObjectFile(LocalDate dt, long objectId, File content) {
         String key = locator.getDelayedObjectKey(dt, objectId);
         log.info("PutObject (delayed) key={}", key);
-        s3.putObject(createPutRequestWithTag(locator.getBucketName(), key, content, PrismObjectType.DELAYED));
+        putObjectWithTag(locator.getBucketName(), key, content, PrismObjectType.DELAYED);
         return key;
     }
 
@@ -100,8 +96,7 @@ public class PrismObjectStore implements SmallObjectStore, MergedObjectStore {
     public InputStream getMergedObject(LocalDate dt, long lowerBound, long upperBound) {
         String key = locator.getMergedObjectKey(dt, lowerBound, upperBound);
         log.debug("Get merged object: {}", key);
-        S3Object object = s3.getObject(locator.getBucketName(), key);
-        return object.getObjectContent();
+        return s3.getObject(GetObjectRequest.builder().bucket(locator.getBucketName()).key(key).build());
     }
 
     @Override
@@ -117,7 +112,7 @@ public class PrismObjectStore implements SmallObjectStore, MergedObjectStore {
     public String putMergedObjectFile(LocalDate dt, long lowerBound, long upperBound, File content) {
         String key = locator.getMergedObjectKey(dt, lowerBound, upperBound);
         log.info("PutObject (merged) key={}", key);
-        s3.putObject(createPutRequestWithTag(locator.getBucketName(), key, content, PrismObjectType.MERGED));
+        putObjectWithTag(locator.getBucketName(), key, content, PrismObjectType.MERGED);
         return key;
     }
 
@@ -125,12 +120,12 @@ public class PrismObjectStore implements SmallObjectStore, MergedObjectStore {
     public String putMergedPartitionManifest(LocalDate dt, long manifestVersion, String content) {
         String key = locator.getMergedPartitionManifestKey(dt, manifestVersion);
         log.info("Put partition manifest: {}", key);
-        ObjectMetadata metadata = new ObjectMetadata();
         byte[] contentBytes = content.getBytes(StandardCharsets.UTF_8);
-        metadata.setContentLength(contentBytes.length);
-        InputStream contentStream = new ByteArrayInputStream(contentBytes);
         log.info("PutObject (manifest) key={}", key);
-        s3.putObject(locator.getBucketName(), key, contentStream, metadata);
+        s3.putObject(
+            PutObjectRequest.builder().bucket(locator.getBucketName()).key(key).build(),
+            RequestBody.fromBytes(contentBytes)
+        );
         return key;
     }
 }

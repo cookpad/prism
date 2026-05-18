@@ -2,8 +2,8 @@ package com.cookpad.prism.batch;
 
 import java.io.IOException;
 
-import com.amazonaws.services.glue.AWSGlue;
-import com.amazonaws.services.glue.model.DeleteTableRequest;
+import software.amazon.awssdk.services.glue.GlueClient;
+import software.amazon.awssdk.services.glue.model.DeleteTableRequest;
 
 import com.cookpad.prism.batch.catalog.DatabaseNameModifier;
 import com.cookpad.prism.dao.PrismTable;
@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class UnlinkTableCmd {
-    private final AWSGlue glue;
+    private final GlueClient glue;
     private final PrismTableMapper tableMapper;
     private final DatabaseNameModifier databaseNameModifier;
 
@@ -29,9 +29,10 @@ public class UnlinkTableCmd {
 
         String databaseName = this.databaseNameModifier.getDatabaseName(table.getLogicalSchemaName());
         String tableName = table.getLogicalTableName();
-        DeleteTableRequest deleteTableRequest = new DeleteTableRequest()
-            .withDatabaseName(databaseName)
-            .withName(tableName);
+        DeleteTableRequest deleteTableRequest = DeleteTableRequest.builder()
+            .databaseName(databaseName)
+            .name(tableName)
+            .build();
         log.info("Deleting table from Glue: {}.{}", databaseName, tableName);
         this.glue.deleteTable(deleteTableRequest);
 

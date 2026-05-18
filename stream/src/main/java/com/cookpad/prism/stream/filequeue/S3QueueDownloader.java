@@ -2,25 +2,26 @@ package com.cookpad.prism.stream.filequeue;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3URI;
-import com.amazonaws.services.s3.model.S3Object;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class S3QueueDownloader {
-    private final AmazonS3 s3;
+    private final S3Client s3;
 
-    public FileQueue download(AmazonS3URI queueObjectUrl) throws IOException {
-        String key = queueObjectUrl.getKey();
-        S3Object queueObject = s3.getObject(queueObjectUrl.getBucket(), key);
+    public FileQueue download(URI queueObjectUrl) throws IOException {
+        String bucket = queueObjectUrl.getHost();
+        String key = queueObjectUrl.getPath().replaceFirst("^/", "");
+        InputStream queueObject = s3.getObject(GetObjectRequest.builder().bucket(bucket).key(key).build());
         Path tmpPath = Files.createTempFile("prism-rebuild-queue-", ".queue").toAbsolutePath();
-        try (InputStream in = queueObject.getObjectContent()) {
+        try (InputStream in = queueObject) {
             Files.copy(in, tmpPath, StandardCopyOption.REPLACE_EXISTING);
         }
         if (key.endsWith(".gz")) {

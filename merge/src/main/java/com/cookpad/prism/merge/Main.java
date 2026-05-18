@@ -5,8 +5,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import software.amazon.awssdk.services.s3.S3Client;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -39,8 +38,8 @@ public class Main {
     }
 
     @Bean
-    public AmazonS3 s3() {
-        return AmazonS3ClientBuilder.defaultClient();
+    public S3Client s3() {
+        return S3Client.create();
     }
 
     @Bean

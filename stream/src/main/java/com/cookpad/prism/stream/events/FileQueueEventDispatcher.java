@@ -1,10 +1,9 @@
 package com.cookpad.prism.stream.events;
 
 import java.io.IOException;
+import java.net.URI;
 import java.time.Clock;
 import java.time.Instant;
-
-import com.amazonaws.services.s3.AmazonS3URI;
 
 import com.cookpad.prism.StepHandler;
 import com.cookpad.prism.stream.events.EventHandler.CatchAndReleaseException;
@@ -28,10 +27,12 @@ public class FileQueueEventDispatcher implements StepHandler {
                 if (s3UrlString == null) {
                     break;
                 }
-                final AmazonS3URI s3Url = new AmazonS3URI(s3UrlString);
+                final URI s3Url = URI.create(s3UrlString);
                 final Instant receiveTime = Instant.now(clock);
                 final Instant sendTime = receiveTime;
-                final StagingObjectEvent event = new StagingObjectEvent(s3Url.getBucket(), s3Url.getKey(), sendTime, receiveTime);
+                final String bucket = s3Url.getHost();
+                final String key = s3Url.getPath().replaceFirst("^/", "");
+                final StagingObjectEvent event = new StagingObjectEvent(bucket, key, sendTime, receiveTime);
                 eventHandler.handleEvent(event);
                 this.fileQueue.dequeue();
             } catch (CatchAndReleaseException e) {
