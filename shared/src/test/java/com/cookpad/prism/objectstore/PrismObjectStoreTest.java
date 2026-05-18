@@ -6,10 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -29,11 +31,11 @@ public class PrismObjectStoreTest {
     }
 
     @Test
-    void putLiveObjectFile_shouldCreateRequestWithCorrectTag() throws IOException {
+    void putLiveObjectFile_shouldCreateRequestWithCorrectTag(@TempDir Path tempDir) throws IOException {
         // Arrange
         LocalDate testDate = LocalDate.of(2025, 1, 1);
         long objectId = 100;
-        File testFile = Files.createTempFile("prism-test-", ".tmp").toFile();
+        File testFile = Files.createFile(tempDir.resolve("prism-test.tmp")).toFile();
         String bucketName = "test-bucket";
         String testKey = "test-key";
 
