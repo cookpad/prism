@@ -18,10 +18,10 @@ subprojects {
     dependencies {
         annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.30'
         compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.30'
-        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.8.2'
-        testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.8.2'
-        testRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-launcher', version: '1.8.2'
-        testImplementation group: "org.mockito", name: "mockito-core", version: "4.11.0"
+        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api'
+        testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine'
+        testRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-launcher'
+        testImplementation group: "org.mockito", name: "mockito-core"
         testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.30'
         testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.30'
     }

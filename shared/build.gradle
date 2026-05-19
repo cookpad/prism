@@ -1,16 +1,16 @@
 plugins {
     id 'java-library'
-    id 'io.spring.dependency-management' version '1.1.4'
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 dependencyManagement {
     imports {
-        mavenBom 'org.springframework.boot:spring-boot-dependencies:2.7.18'
+        mavenBom 'org.springframework.boot:spring-boot-dependencies:4.0.6'
     }
 }
 
 dependencies {
-    api group: 'org.mybatis.spring.boot', name: 'mybatis-spring-boot-starter', version: '2.3.2'
+    api group: 'org.mybatis.spring.boot', name: 'mybatis-spring-boot-starter', version: '4.0.1'
     api group: 'org.apache.parquet', name: 'parquet-hadoop', version: '1.17.0'
     api group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.5.0'
     api group: 'org.apache.hadoop', name: 'hadoop-mapreduce-client-core', version: '3.5.0'

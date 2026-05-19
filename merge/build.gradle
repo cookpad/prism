@@ -1,13 +1,13 @@
 plugins {
-    id "org.springframework.boot" version "2.7.18"
-    id "io.spring.dependency-management" version "1.1.4"
+    id "org.springframework.boot" version "4.0.6"
+    id "io.spring.dependency-management" version "1.1.7"
     id "com.google.cloud.tools.jib" version "3.4.5"
 }
 
 dependencies {
     implementation project(':shared')
-    implementation group: 'org.springframework.boot', name: 'spring-boot-starter', version: '2.7.18'
-    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-logging', version: '2.7.18'
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter'
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-logging'
     implementation group: 'io.sentry', name: 'sentry-logback', version: '8.40.0'
     implementation group: 'org.postgresql', name: 'postgresql', version: '42.2.5'
 }
