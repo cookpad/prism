@@ -10,7 +10,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-logging'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     implementation 'io.sentry:sentry-logback:8.40.0'
-    implementation 'org.postgresql:postgresql:42.2.5'
+    implementation 'org.postgresql:postgresql'
     implementation 'software.amazon.awssdk:s3-event-notifications:2.43.1'
     testImplementation 'org.springframework.boot:spring-boot-test-autoconfigure'
 }
