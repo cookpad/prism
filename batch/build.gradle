@@ -6,11 +6,11 @@ plugins {
 
 dependencies {
     implementation project(':shared')
-    implementation group: 'org.springframework.boot', name: 'spring-boot-starter'
-    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-logging'
-    implementation group: 'io.sentry', name: 'sentry-logback', version: '8.40.0'
-    implementation group: 'org.postgresql', name: 'postgresql', version: '42.2.5'
-    implementation group: 'software.amazon.awssdk', name: 'glue', version: '2.43.1'
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-logging'
+    implementation 'io.sentry:sentry-logback:8.40.0'
+    implementation 'org.postgresql:postgresql:42.2.5'
+    implementation 'software.amazon.awssdk:glue:2.43.1'
 }
 
 jib {
