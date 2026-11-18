@@ -25,5 +25,11 @@ RUN ./autogen.sh && ./configure --prefix=/usr --libdir=/usr/lib64 && make instal
 
 FROM public.ecr.aws/amazoncorretto/amazoncorretto:21-al2023
 
+ARG MIN_CORRETTO_VERSION=21.0.13.1.2
+RUN . "${JAVA_HOME}/release" && v=${IMPLEMENTOR_VERSION#Corretto-} && \
+    echo "Corretto ${v}" && \
+    [ "$(printf '%s\n' "${MIN_CORRETTO_VERSION}" "${v}" | sort -V | head -n1)" = "${MIN_CORRETTO_VERSION}" ] || \
+    { echo "Corretto ${v} is older than ${MIN_CORRETTO_VERSION}" >&2; exit 1; }
+
 COPY --from=hadoop-libs /tmp/hadoop/lib/native/lib*.so /usr/lib64/
 COPY --from=libisal /usr/lib64/libisal.so.2 /usr/lib64/
